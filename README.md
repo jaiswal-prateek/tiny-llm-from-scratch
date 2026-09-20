@@ -1,6 +1,9 @@
-# LLM Fine-Tuning Lab
+# Tiny LLM From Scratch
 
 A hands-on learning project for understanding how modern language models work **from the inside out**.
+
+A hands-on implementation of a tiny, SmolLM2-style decoder Transformer in PyTorch.
+> Built as a learning project to understand how modern LLMs work from tokenization and embeddings through attention, training, generation, and KV caching.
 
 This repository starts with a small Transformer language model implemented in PyTorch and gradually explores the core ideas behind real LLMs:
 
@@ -17,6 +20,134 @@ This repository starts with a small Transformer language model implemented in Py
 - Training and checkpointing
 
 The goal is not to build a production-quality LLM. The goal is to **understand the mechanics by implementing and observing them ourselves**.
+
+---
+
+## At a Glance
+
+| Component | Implementation |
+|---|---|
+| Framework | PyTorch |
+| Architecture | Decoder-only Transformer |
+| Hidden size | 8 |
+| Attention heads | 2 |
+| Transformer layers | 2 |
+| Context length | 4 |
+| FFN | SwiGLU |
+| Normalization | RMSNorm |
+| Positional encoding | RoPE |
+| Generation | Greedy / temperature / top-k / top-p |
+| Inference optimization | KV cache |
+| Tokenizer | Simple word-level tokenizer |
+
+---
+
+## Architecture
+
+```text
+                              Tiny LLM
+
+Text
+ │
+ ▼
+Tokenizer
+ │
+ ▼
+Token IDs
+ │
+ ▼
+Embedding
+ │
+ ▼
+┌──────────────────────────────────────────────┐
+│            Transformer Block × 2            │
+│                                              │
+│  RMSNorm                                     │
+│     │                                        │
+│     ▼                                        │
+│  Multi-Head Self-Attention                  │
+│     ├── Q / K / V projections               │
+│     ├── RoPE                                │
+│     ├── Causal Mask                         │
+│     └── KV Cache (during generation)        │
+│     │                                        │
+│     ▼                                        │
+│  Residual Connection                         │
+│     │                                        │
+│     ▼                                        │
+│  RMSNorm                                     │
+│     │                                        │
+│     ▼                                        │
+│  SwiGLU / Feed-Forward Network              │
+│     │                                        │
+│     ▼                                        │
+│  Residual Connection                         │
+└──────────────────────────────────────────────┘
+ │
+ ▼
+Final RMSNorm
+ │
+ ▼
+LM Head
+ │
+ ▼
+Logits
+ │
+ ├─────────────── Generation ────────────────┐
+ │                                            │
+ ▼                                            │
+Temperature → Top-k → Top-p → Softmax       │
+ │                                            │
+ ▼                                            │
+Sampling                                     │
+ │                                            │
+ ▼                                            │
+Next Token ──────────────────────────────────┘
+```
+
+### Training flow
+
+```text
+Text
+  ↓
+Tokenizer
+  ↓
+Token IDs
+  ↓
+Input / Target Sequences
+  ↓
+Embedding
+  ↓
+Transformer
+  ↓
+Logits
+  ↓
+Cross-Entropy Loss
+  ↓
+Backpropagation
+  ↓
+Optimizer
+  ↓
+Updated Model Weights
+```
+
+### Inference flow
+
+```text
+Prompt
+  ↓
+Prefill entire prompt
+  ↓
+KV Cache
+  ↓
+Generate one new token
+  ↓
+Reuse cached K/V
+  ↓
+Generate next token
+  ↓
+Repeat until EOS / max_new_tokens
+```
 
 ---
 
@@ -120,7 +251,7 @@ The learning notebooks are part of the project. They are not just scratch work; 
 # Repository Structure
 
 ```text
-llm-finetuning-lab/
+tiny-llm-from-scratch/
 │
 ├── data/
 │   └── sample.txt
@@ -129,12 +260,12 @@ llm-finetuning-lab/
 │   └── ...
 │
 ├── learning/
-│   ├── 01_embeddings.ipynb
-│   ├── 03_kv_cache.ipynb
-│   └── 04_tokenizer.ipynb
+│   ├── [Embeddings](learning/01_embeddings.ipynb)
+│   ├── [KV Cache](learning/03_kv_cache.ipynb)
+│   └── [Tokenizer / BPE](learning/04_tokenizer.ipynb)
 │
 ├── notebooks/
-│   └── 01_transformer_from_scratch.ipynb
+│   └── [Transformer from Scratch](notebooks/01_transformer_from_scratch.ipynb)
 │
 ├── smollm2/
 │   ├── __init__.py
@@ -164,8 +295,8 @@ llm-finetuning-lab/
 ## 1. Clone the repository
 
 ```bash
-git clone <your-repository-url>
-cd llm-finetuning-lab
+git clone https://github.com/jaiswal-prateek/tiny-llm-from-scratch.git
+cd tiny-llm-from-scratch
 ```
 
 ## 2. Create a virtual environment
@@ -767,7 +898,7 @@ The model can therefore be viewed as a successful **learning experiment**, rathe
 
 ---
 
-# Current Limitations
+# What We Learned: Results and Limitations
 
 This implementation is intentionally tiny, which creates several important limitations.
 
@@ -871,6 +1002,21 @@ These experiments turn the tiny model into a useful sandbox for understanding ho
 
 ---
 
+## Try These Experiments
+
+The repository is intentionally small enough to modify.
+
+1. Increase `HIDDEN_SIZE` from 8 to 32.
+2. Increase `SEQ_LEN` from 4 to 32.
+3. Train on a larger corpus.
+4. Replace the tokenizer with BPE.
+5. Compare greedy decoding with sampling.
+6. Compare generation with and without KV caching.
+7. Add a validation split and plot training vs validation loss.
+8. Increase the number of Transformer layers and observe the effect.
+
+---
+
 # Next Steps
 
 After completing this tiny model, the learning path is:
@@ -903,8 +1049,6 @@ training loop, and inference system work."
 ```
 
 ---
-
-# License
 
 # License
 
