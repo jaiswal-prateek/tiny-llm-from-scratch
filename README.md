@@ -1,8 +1,7 @@
-# Tiny LLM From Scratch
+# Tiny LLM From Scratch in PyTorch
 
-A hands-on learning project for understanding how modern language models work **from the inside out**.
+A hands-on learning project for building a tiny LLM from scratch in PyTorch and understanding modern Transformer architecture from the inside out.
 
-A hands-on implementation of a tiny, SmolLM2-style decoder Transformer in PyTorch.
 > Built as a learning project to understand how modern LLMs work from tokenization and embeddings through attention, training, generation, and KV caching.
 
 This repository starts with a small Transformer language model implemented in PyTorch and gradually explores the core ideas behind real LLMs:
